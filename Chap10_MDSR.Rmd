@@ -22,15 +22,16 @@ library(tidyr)
 # Exercises
 
 ### Exercise 10.2
-```{r}
 # p. 222
+```{r}
+
 NCI60 <- read.csv("C:/Users/a5730/Downloads/NCI60.csv", header = T, sep = "," )
 
 ```
 
-
-```{r}
 # p. 223
+```{r}
+
 Spreads <- NCI60 %>% 
   gather(value = expression, 
          key = cellLine, -Probe) %>% 
@@ -41,8 +42,9 @@ Spreads <- NCI60 %>%
   mutate(order = row_number())
 ```
 
-```{r}
 # p. 223
+```{r}
+
 Sim_spreads <- NCI60 %>%
 gather(value = expression, 
        key = cellLine, -Probe) %>%
@@ -55,8 +57,9 @@ mutate(order = row_number())
 
 ```
 ### Exercise 10.3
-```{r}
 # p. 224
+```{r}
+
 Spreads %>%
 filter(order <= 500) %>%
 ggplot(aes(x = order, 
@@ -68,13 +71,14 @@ geom_line(data = filter(Sim_spreads, order <= 500),
 
 ```
 
-
-```{r}
 # p. 224
+```{r}
+
 runif(5)
 ```
-```{r}
 # p. 225
+```{r}
+
 select_one <- function(vec) {
   n <- length(vec)
   ind <- which.max(runif(n))
@@ -90,8 +94,9 @@ select_one(letters)
 ### Exercise 10.4
 
 ##Section 10.4.1
-```{r}
 # p. 226
+```{r}
+
 n <- 100000
 sim_meet <- data.frame(
   sally <- runif(n, min = 0, max = 60),
@@ -106,6 +111,7 @@ binom.test(~result,
            data = sim_meet)
 ```
 ##Section 10.4.2
+# p. 227
 ```{r}
 # p. 227
 jobs_true <- 150
@@ -124,7 +130,7 @@ gen_samp <- function(true_mean,
 
 
 ```
-
+# p. 228
 ```{r}
 # p. 228
 n_sims <- 3
@@ -133,7 +139,7 @@ id = c("Truth", paste("Sample", 1:n_sims)))
 
 
 ```
-
+# p. 228
 ```{r}
 # p. 228
 df <- params %>%
@@ -143,6 +149,7 @@ dplyr::do(gen_samp(true_mean = jobs_true, true_sd = .$sd, id = .$id))
 ```
 
 ##Section 10.4.3
+# p. 228
 ```{r}
 # p. 228
 minval <- 7
@@ -153,7 +160,7 @@ JustScores <- Violations %>%
   unique()
 
 ```
-
+# p. 229
 ```{r}
 # p. 229
 ggplot(data = sim_meet, aes(x = joan, y = sally, color = result)) +
@@ -162,6 +169,7 @@ ggplot(data = sim_meet, aes(x = joan, y = sally, color = result)) +
   geom_abline(intercept = -10, slope = 1)
 
 ```
+# p. 229
 ```{r}
 # p. 229
 ggplot(data = df, aes(x = month, y = jobs_number)) +
@@ -170,6 +178,7 @@ ggplot(data = df, aes(x = month, y = jobs_number)) +
   facet_wrap(~ id) + ylab("Number of new jobs (in thousands)")
 
 ```
+# p. 230
 ```{r}
 # p. 230
 ggplot(data = JustScores, aes(x = score)) +
@@ -180,6 +189,7 @@ ggplot(data = JustScores, aes(x = score)) +
            label = "A grade: score of 13 or less")
 
 ```
+# p. 230
 ```{r}
 # p. 230
 scores <- tally(~score, data = JustScores)
@@ -193,6 +203,7 @@ head(RandomFlip, 3)
 
 ```
 
+# p. 231
 ```{r}
 # p. 231
 ggplot(data = RandomFlip, aes(x = heads)) +
@@ -206,6 +217,7 @@ ggplot(data = RandomFlip, aes(x = heads)) +
 ```
 
 ### Exercise 10.5
+# p. 232
 ```{r}
 # p. 232
 any_active <- function(df) {
@@ -225,35 +237,45 @@ update_customer <- function(df, cust_num, end_time) {
 }
 
 ```
-```{r}
-run_sim <- function(n = 1/2, m = 3/2, hours = 6) {
-  customers <- rpois(hours * 60, lambda = n)
-  arrival <- numeric(sum(customers))
-  position <- 1
-  for (i in 1:length(customers)) {
-    numcust <- customers[i]
-    if (numcust != 0) {
-      arrival[position:(position + numcust - 1)] <- rep(i, numcust)
-      position <- position + numcust
-    }
-  }
-duration <- rexp(length(arrival), rate = 1/m) 
-df <- data.frame(arrival, duration, custnum = 1:length(duration),
-                 endtime = Inf, stringsAsFactors = FALSE)
-endtime <- 0 
-while (any_active(df)) 
-  next_one <- next_customer(df)
-  now <- ifelse(next_one$arrival >= endtime, 
-                next_one$arrival, 
-                endtime)
-  endtime <- now + next_one$duration
-  df <- update_customer(df, next_one$custnum, endtime)
-}
- df <- mutate(df, totaltime = endtime - arrival)
- return(favstats(~ totaltime, data = df))
-}
 
+# p. 232
+```{r}
+run_sim <- function(n = 1/2, m = 3/2, hours = 6) { 
+  # simulation of bank where there is just one teller 
+  # n: expected number of customers per minute 
+  # m: expected length of transaction is m minutes 
+  # hours: bank open for this many hours 
+  customers <- rpois(hours * 60, lambda = n) 
+  arrival <- numeric(sum(customers)) 
+  position <- 1 
+  for (i in 1:length(customers)) { 
+    numcust <- customers[i]
+    if (numcust != 0) { 
+      arrival[position:(position + numcust - 1)] <- rep(i, numcust)
+      position <- position + numcust 
+      } 
+    } 
+  duration <- rexp(length(arrival), rate = 1/m) # E[X]=m 
+  df <- data.frame(arrival, duration, 
+                   custnum = 1:length(duration),
+                   endtime = Inf,
+                   stringsAsFactors = FALSE)
+  
+endtime <- 0 # set up beginning of simulation 
+while (any_active(df)) { # anyone left to serve?
+  next_one <- next_customer(df) 
+  now <- ifelse(next_one$arrival >= endtime, next_one$arrival, endtime)
+endtime <- now + next_one$duration 
+df <- update_customer(df, next_one$custnum, endtime)
+} 
+df <- mutate(df, totaltime = endtime - arrival)
+return(favstats(~ totaltime, data = df))
+}
 ```
+
+
+
+# p. 233
 ```{r}
 # p. 233
 sim_results <- do(3) * run_sim()
@@ -266,6 +288,7 @@ sim_results
 
 
 ### Excercise 10.7
+# p. 234
 ```{r}
 # p. 234
 campus_sim <- function(num_sim = 1000, wait = 10) {
@@ -281,7 +304,7 @@ sim_results <- params %>%
 favstats(campus_sim ~ num_sims, data = sim_results)
 
 ```
-
+# p. 235
 ```{r}
 # p. 235
 sim_results20k <- do(reps) * campus_sim(num_sim  = 20000)
@@ -293,6 +316,7 @@ ggplot(data = sim_results, aes(x = campus_sim, color = factor(num_sims))) +
   scale_x_continuous("Proportion of times that Sally and Joan meet")
 
 ```
+# p. 236
 ```{r}
 # p. 236
 set.seed(1974)
